@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDom from 'react-dom';
+import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import './App.css';
 
 
@@ -19,8 +20,19 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     this.handleSubmit = this.handleSubmit.bind(this);
   }
   handleChange = (event:React.ChangeEvent<HTMLInputElement>):void => {
-    //音声変換したい
-    this.setState({value: event.target.value});
+    const ffmpeg = createFFmpeg({
+      log: true,
+    });
+    const fs = require('fs');
+    async () => {
+      await ffmpeg.load();
+      ffmpeg.FS('writeFile','video.mp4',await fetchFile(event.target.value));
+      await ffmpeg.run('-i', 'video.mp4', 'audio.wav');
+      const data = ffmpeg.FS('readFile', 'audio.wav');
+      await fs.promises.writeFile('./test.wav',data);
+      //音声変換したい
+    }
+      this.setState({value: event.target.value});
   }
   handleSubmit = (event:React.FormEvent<HTMLFormElement>):void => {
     
