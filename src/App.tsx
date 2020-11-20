@@ -18,13 +18,11 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-  handleChange = (event:any) => {
+  handleChange = (event:React.ChangeEvent<HTMLInputElement>):void => {
     //音声変換したい
-    
     this.setState({value: event.target.value});
-    
   }
-  handleSubmit = (event:any) => {
+  handleSubmit = (event:React.FormEvent<HTMLFormElement>):void => {
     
   }
   render() {
