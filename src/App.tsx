@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactDom from 'react-dom';
+import fs from 'fs';
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import './App.css';
+import { render } from '@testing-library/react';
 
 
 interface SquarePropsInterface {
@@ -23,14 +25,18 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     const ffmpeg = createFFmpeg({
       log: true,
     });
-    const fs = require('fs');
-    async () => {
+    
+    async () => { //kakikata 無名関数はこういう書き方はできない,
       await ffmpeg.load();
       ffmpeg.FS('writeFile','video.mp4',await fetchFile(event.target.value));
       await ffmpeg.run('-i', 'video.mp4', 'audio.wav');
       const data = ffmpeg.FS('readFile', 'audio.wav');
       await fs.promises.writeFile('./test.wav',data);
-      //音声変換したい
+      Download();
+      //downloadしたい
+    }
+    function Download() {
+      return <a id="download" href="#" download="./test.wav"></a>;
     }
       this.setState({value: event.target.value});
   }
@@ -39,6 +45,7 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
   }
   render() {
     return (
+    <div>
       <form onSubmit={this.handleSubmit}>
         <label>
           Name:
@@ -46,6 +53,7 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
         </label>
         <input type="submit" value="Submit" />
       </form>
+    </div>
     );
   }
 }
