@@ -8,11 +8,11 @@ import { fileURLToPath } from 'url';
 
 
 interface SquarePropsInterface {
-  
 }
 
 interface SquareStateInterface {
-  value: string;
+  file: File;
+  fileName: string;
 }
 
 
@@ -20,11 +20,10 @@ interface SquareStateInterface {
 class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterface> {
   constructor(props:SquarePropsInterface) {
     super(props);
-    this.state = {value:''}
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-  private getFileInput(file:File): Promise<any> {//anyは後で直したい
+  private getFileInput(file:File): Promise<string | ArrayBuffer | null> {//anyは後で直したい
     return new Promise(function (resolve, reject) {
       const reader = new FileReader();
       reader.onerror = reject;
@@ -36,6 +35,9 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
   private manageUploadedFile(binary:string, file: File) {
     console.log('the file size is '+binary.length);
     console.log('the file name is '+file.name);
+    this.setState({
+      file:file,
+    });
   }
   private handleChange(event:React.ChangeEvent<HTMLInputElement>) {
     /*
@@ -56,22 +58,25 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
       return <a id="download" href="#" download="./audio.wav"></a>;
     }
     */
-    event.persist();
+    //event.persist(); 参考にしたページにはあったがなくても動く
     if (event.target.files !== null) {
       Array.from(event.target.files).forEach(file => {
         this.getFileInput(file)
           .then((binary) => {
-            this.manageUploadedFile(binary,file);
+            if (typeof binary === 'string'){
+              this.manageUploadedFile(binary,file);
+            } else {
+              console.log("binary is not string");
+            }
           }).catch(function (reason) {
             console.log('error during upload ${reason}');
             event.target.value = '';
           })
       })
     }
-      //this.setState({value: event.target.value});
   }
   handleSubmit = (event:React.FormEvent<HTMLFormElement>):void => {
-    
+    console.log('submit file' + this.state.file.name);
   }
   render() {
     return (
