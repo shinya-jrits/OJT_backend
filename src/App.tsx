@@ -4,11 +4,11 @@ import * as fs from 'fs';
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import './App.css';
 import { render } from '@testing-library/react';
+import { fileURLToPath } from 'url';
 
 
 interface SquarePropsInterface {
-  //value: String;
-  fileInput: FileList;
+  
 }
 
 interface SquareStateInterface {
@@ -23,17 +23,30 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     this.state = {value:''}
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.fileInput = React.createRef();
   }
-  handleChange = async (event:React.ChangeEvent<HTMLInputElement>):Promise<void> => {
+  private getFileInput(file:File): Promise<any> {//anyは後で直したい
+    return new Promise(function (resolve, reject) {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = function () { resolve(reader.result); };
+      reader.readAsBinaryString(file); // here the file can be read in different way Text, DataUrl, ArrayBuffer
+  });
+  }
+
+  private manageUploadedFile(binary:string, file: File) {
+    console.log('the file size is '+binary.length);
+    console.log('the file name is '+file.name);
+  }
+  private handleChange(event:React.ChangeEvent<HTMLInputElement>) {
+    /*
     const ffmpeg = createFFmpeg({
       log: true,
     });
     
-    await ffmpeg.load();
+    ffmpeg.load();
     //@ts-ignore
     ffmpeg.FS('writeFile','video.mp4',await fetchFile(event.target.files[0]));
-    await ffmpeg.run('-i', 'video.mp4', 'audio.wav');
+    ffmpeg.run('-i', 'video.mp4', 'audio.wav');
     //errorハンドリングしてない、なんでエラー
     //ffmpeg.FS('readFile','audio.wav');
     Download();
@@ -42,7 +55,20 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     function Download() {
       return <a id="download" href="#" download="./audio.wav"></a>;
     }
-      this.setState({value: event.target.value});
+    */
+    event.persist();
+    if (event.target.files !== null) {
+      Array.from(event.target.files).forEach(file => {
+        this.getFileInput(file)
+          .then((binary) => {
+            this.manageUploadedFile(binary,file);
+          }).catch(function (reason) {
+            console.log('error during upload ${reason}');
+            event.target.value = '';
+          })
+      })
+    }
+      //this.setState({value: event.target.value});
   }
   handleSubmit = (event:React.FormEvent<HTMLFormElement>):void => {
     
@@ -53,7 +79,7 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
       <form onSubmit={this.handleSubmit}>
         <label>
           Name:
-          <input type="file" accept = "video/mp4" value={this.state.value} onChange={ (e) => this.handleChange(e.target.files)} />
+          <input type="file" accept = "video/mp4" onChange={this.handleChange} />
         </label>
         <input type="submit" value="Submit" />
       </form>
