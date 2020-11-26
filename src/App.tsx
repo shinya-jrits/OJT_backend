@@ -13,6 +13,7 @@ interface SquarePropsInterface {
 interface SquareStateInterface {
   file: File;
   //fileName: string;
+  //test
 }
 
 
