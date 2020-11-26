@@ -3,7 +3,7 @@ import ReactDom from 'react-dom';
 import * as fs from 'fs';
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import './App.css';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { fileURLToPath } from 'url';
 
 
@@ -12,7 +12,7 @@ interface SquarePropsInterface {
 
 interface SquareStateInterface {
   file: File;
-  fileName: string;
+  //fileName: string;
 }
 
 
@@ -23,7 +23,7 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-  private getFileInput(file:File): Promise<string | ArrayBuffer | null> {//anyは後で直したい
+  private getFileInput(file:File): Promise<string | ArrayBuffer | null> {
     return new Promise(function (resolve, reject) {
       const reader = new FileReader();
       reader.onerror = reject;
@@ -38,6 +38,18 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     this.setState({
       file:file,
     });
+  }
+
+  private async videoConverter(file:File):Promise<File> {
+      const ffmpeg = createFFmpeg({
+        log: true,
+      });
+      
+      await ffmpeg.load();
+      ffmpeg.FS('writeFile',file.name,await fetchFile(file));
+      await ffmpeg.run('-i',file.name, 'audio.wav');
+      return ffmpeg.FS('readFile','audio.wav');
+    
   }
   private handleChange(event:React.ChangeEvent<HTMLInputElement>) {
     /*
@@ -58,7 +70,6 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
       return <a id="download" href="#" download="./audio.wav"></a>;
     }
     */
-    //event.persist(); 参考にしたページにはあったがなくても動く
     if (event.target.files !== null) {
       Array.from(event.target.files).forEach(file => {
         this.getFileInput(file)
@@ -76,7 +87,9 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     }
   }
   handleSubmit = (event:React.FormEvent<HTMLFormElement>):void => {
-    console.log('submit file' + this.state.file.name);
+    event.preventDefault();
+    const result = this.videoConverter(this.state.file);
+    
   }
   render() {
     return (
