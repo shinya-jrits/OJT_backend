@@ -3,7 +3,6 @@ import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import './App.css';
 
 
-
 interface SquarePropsInterface {
 }
 
@@ -11,29 +10,11 @@ interface SquareStateInterface {
   file: File;
 }
 
-
-
 class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterface> {
   constructor(props:SquarePropsInterface) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-  }
-  private getFileInput(file:File): Promise<string | ArrayBuffer | null> {
-    return new Promise(function (resolve, reject) {
-      const reader = new FileReader();
-      reader.onerror = reject;
-      reader.onload = function () { resolve(reader.result); };
-      reader.readAsBinaryString(file); // here the file can be read in different way Text, DataUrl, ArrayBuffer
-  });
-  }
-
-  private manageUploadedFile(binary:string, file: File) {
-    console.log('the file size is '+binary.length);
-    console.log('the file name is '+file.name);
-    this.setState({
-      file:file,
-    });
   }
 
   private async videoConverter(file:File):Promise<File> {
@@ -49,17 +30,9 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
   private handleChange(event:React.ChangeEvent<HTMLInputElement>) {
     if (event.target.files !== null) {
       Array.from(event.target.files).forEach(file => {
-        this.getFileInput(file)
-          .then((binary) => {
-            if (typeof binary === 'string'){
-              this.manageUploadedFile(binary,file);
-            } else {
-              console.log("binary is not string");
-            }
-          }).catch(function (reason) {
-            console.log('error during upload ${reason}');
-            event.target.value = '';
-          })
+        this.setState({
+          file:file,
+        });
       })
     }
   }
