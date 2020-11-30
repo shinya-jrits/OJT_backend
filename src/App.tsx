@@ -1,10 +1,7 @@
 import React from 'react';
-import ReactDom from 'react-dom';
-import * as fs from 'fs';
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import './App.css';
-import { fireEvent, render } from '@testing-library/react';
-import { fileURLToPath } from 'url';
+
 
 
 interface SquarePropsInterface {
@@ -12,8 +9,6 @@ interface SquarePropsInterface {
 
 interface SquareStateInterface {
   file: File;
-  //fileName: string;
-  //test
 }
 
 
@@ -45,7 +40,6 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
       const ffmpeg = createFFmpeg({
         log: true,
       });
-      
       await ffmpeg.load();
       ffmpeg.FS('writeFile',file.name,await fetchFile(file));
       await ffmpeg.run('-i',file.name, 'audio.wav');
@@ -53,24 +47,6 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     
   }
   private handleChange(event:React.ChangeEvent<HTMLInputElement>) {
-    /*
-    const ffmpeg = createFFmpeg({
-      log: true,
-    });
-    
-    ffmpeg.load();
-    //@ts-ignore
-    ffmpeg.FS('writeFile','video.mp4',await fetchFile(event.target.files[0]));
-    ffmpeg.run('-i', 'video.mp4', 'audio.wav');
-    //errorハンドリングしてない、なんでエラー
-    //ffmpeg.FS('readFile','audio.wav');
-    Download();
-    //downloadしたい
-    
-    function Download() {
-      return <a id="download" href="#" download="./audio.wav"></a>;
-    }
-    */
     if (event.target.files !== null) {
       Array.from(event.target.files).forEach(file => {
         this.getFileInput(file)
@@ -88,9 +64,16 @@ class MovieForm extends React.Component<SquarePropsInterface, SquareStateInterfa
     }
   }
   handleSubmit = (event:React.FormEvent<HTMLFormElement>):void => {
-    event.preventDefault();
+
     const result = this.videoConverter(this.state.file);
-    
+    result.then((result) => {
+      const data = window.URL.createObjectURL(new Blob([result]));
+      const url = document.createElement('a');
+      url.href=data;
+      url.setAttribute('download','audio.wav');
+      url.click();
+    })
+    event.preventDefault();//ページ遷移を防ぐため
   }
   render() {
     return (
